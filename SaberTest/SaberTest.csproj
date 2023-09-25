@@ -7,4 +7,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="google.apis.sheets.v4" Version="1.62.0.3148" />
+  </ItemGroup>
+
 </Project>
