@@ -22,25 +22,25 @@ namespace SaberTest
         static readonly string SpreadsheetID = "1oCZkZKQmEHosTUmHhJGozapzm6s2CIjNVXxK1AhWAQA";
 
         static readonly string sourceSheet = "Source";
-        static readonly string reportSheet = "Report";
+        static readonly string reportSheet = "ProgRepo";
 
         static readonly string posSourceLeftUp = "A2";
         static readonly string posSourceRightDown = "L242";
 
         enum column
         { 
-            Issuekey,
-            IssueID,
-            IssueType,
-            Status,
-            Priority,
-            Resolution,
-            Assignee,
-            Reporter,
-            Created,
-            Resolved,
-            OriginalEstimate,
-            TimeSpent
+            Issuekey = 0,
+            IssueID = 1,
+            IssueType = 2,
+            Status = 3,
+            Priority = 4,
+            Resolution = 5,
+            Assignee = 6,
+            Reporter = 7,
+            Created = 8,
+            Resolved = 9,
+            OriginalEstimate = 10,
+            TimeSpent = 11
         }
 
         //Объявление переменной сервиса Google Sheets
@@ -64,13 +64,13 @@ namespace SaberTest
         }
 
         //Метод для считывания и обработки получаемых с указанной таблицы данных из указанного диапазона
-        public static List<object> ReadEntries(string sheetName, string rangeFrom, string rangeTo)
+        public static List<IList<object>> ReadEntries(string sheetName, string rangeFrom, string rangeTo)
         {
             var range = $"{sheetName}!{rangeFrom}:{rangeTo}";
             var request = sheetService.Spreadsheets.Values.Get(SpreadsheetID, range);
 
             var responce = request.Execute();
-            var values = (List<object>)responce.Values;
+            var values = (List<IList<object>>)responce.Values;
 
             if (values != null && values.Count > 0)
                 Console.WriteLine("Values are ok");
@@ -81,13 +81,21 @@ namespace SaberTest
         }
 
         //Метод для создания списка записей в указанной таблице с ближайшего свободного места в указаном диапазоне
-        public static void CreateEntry(List<object> values, string sheetName, string rangeFrom, string rangeTo)
+        public static void CreateEntry(List<IList<object>> values, string sheetName, string rangeFrom, string rangeTo)
         {
             var range = $"{sheetName}!{rangeFrom}:{rangeTo}";
             var valueRange = new ValueRange();
 
             if (values != null && values.Count > 0)
-                valueRange.Values = new List<IList<object>> { values };
+            {
+                foreach (var row in values)
+                {
+                    var row_obj = new List<object>();
+                    row_obj = row.ToList<object>();
+                    valueRange.Values = new List<IList<object>> { row_obj };
+                }
+            }
+                
             else
                 throw new Exception("!!! MISSING VALUES !!!");
 
@@ -103,8 +111,21 @@ namespace SaberTest
 
             ConnectToGoogle();
 
-            var values = new List<object>();
+            var values = new List<IList<object>>();
             values = ReadEntries(sourceSheet, posSourceLeftUp, posSourceRightDown);
+
+            //Console.WriteLine(values[0].GetType());
+
+            //foreach (var row in values)
+            //{
+            //    Console.WriteLine("{0} | {1} | {2} | {3} | {4} | {5} | {6} | {7} | {8} | {9} | {10} | {11} \n",
+            //                    row[(int)column.Issuekey], row[(int)column.IssueID], row[(int)column.IssueType],
+            //                    row[(int)column.Status], row[(int)column.Priority], row[(int)column.Resolution],
+            //                    row[(int)column.Assignee], row[(int)column.Reporter], row[(int)column.Created],
+            //                    row[(int)column.Resolved], row[(int)column.OriginalEstimate], row[(int)column.TimeSpent]);
+            //}
+
+
 
             Console.ReadKey();
         }
