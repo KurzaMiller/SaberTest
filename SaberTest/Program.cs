@@ -81,7 +81,7 @@ namespace SaberTest
         }
 
         //Метод для создания списка записей в указанной таблице с ближайшего свободного места в указаном диапазоне
-        public static void CreateEntry(List<IList<object>> values, string sheetName, string rangeFrom, string rangeTo)
+        public static void CreateEntry(List<List<object>> values, string sheetName, string rangeFrom, string rangeTo)
         {
             var range = $"{sheetName}!{rangeFrom}:{rangeTo}";
             var valueRange = new ValueRange();
@@ -91,7 +91,7 @@ namespace SaberTest
                 foreach (var row in values)
                 {
                     var row_obj = new List<object>();
-                    row_obj = row.ToList<object>();
+                    row_obj = row;
                     valueRange.Values = new List<IList<object>> { row_obj };
                 }
             }
@@ -103,6 +103,49 @@ namespace SaberTest
             appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
 
             var appendResponse = appendRequest.Execute();
+        }
+
+        public void AvgRatePriority(List<IList<object>> values)
+        {
+            var listOfRows = new List<List<object>>()
+            { 
+                new List<object>(),
+                new List<object>(),
+                new List<object>(),
+                new List<object>(),
+                new List<object>()
+            };
+            int blocker_pr = 0;
+            int critical_pr = 0;
+            int major_pr = 0;
+            int minor_pr = 0;
+            int trivial_pr = 0;
+            
+            foreach(var row in values)
+            {
+                switch (row[(int)column.Priority])
+                {
+                    case "Blocker":
+                        blocker_pr += (int)row[(int)column.OriginalEstimate];
+                        break;
+                    case "Critical":
+                        critical_pr += (int)row[(int)column.OriginalEstimate];
+                        break;
+                    case "Major":
+                        major_pr += (int)row[(int)column.OriginalEstimate];
+                        break;
+                    case "Minor":
+                        minor_pr += (int)row[(int)column.OriginalEstimate];
+                        break;
+                    case "Trivial":
+                        trivial_pr += (int)row[(int)column.OriginalEstimate];
+                        break;
+                }
+            }
+
+            List<IList<object>> values_list = new List<IList<object>>();
+
+            foreach
         }
 
         private static void Main(string[] args)
