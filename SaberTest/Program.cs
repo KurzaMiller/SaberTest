@@ -10,6 +10,7 @@ using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using Google.Apis.Sheets.v4.Data;
 using System.Data;
+using System.Security.Cryptography.X509Certificates;
 
 namespace SaberTest
 {
@@ -41,6 +42,12 @@ namespace SaberTest
             Resolved = 9,
             OriginalEstimate = 10,
             TimeSpent = 11
+        }
+
+        public class AnswerStrucure
+        { 
+            public string field { get; set; }
+            public int answer { get; set; }
         }
 
         //Объявление переменной сервиса Google Sheets
@@ -81,10 +88,13 @@ namespace SaberTest
         }
 
         //Метод для создания списка записей в указанной таблице с ближайшего свободного места в указаном диапазоне
-        public static void CreateEntry(List<List<object>> values, string sheetName, string rangeFrom, string rangeTo)
+        public static void UpdateEntry(List<List<object>> values, string sheetName, string rangeFrom, string rangeTo)
         {
+            //var rowCount = values.ToList<object>().Count;
+
             var range = $"{sheetName}!{rangeFrom}:{rangeTo}";
             var valueRange = new ValueRange();
+            valueRange.Values = new List<IList<object>>();
 
             if (values != null && values.Count > 0)
             {
@@ -92,60 +102,67 @@ namespace SaberTest
                 {
                     var row_obj = new List<object>();
                     row_obj = row;
-                    valueRange.Values = new List<IList<object>> { row_obj };
+                    //Console.WriteLine(row[0]);
+                    valueRange.Values.Add(row_obj);                    
+                    //Console.WriteLine(valueRange.Values.Count + "\n");
                 }
             }
                 
             else
                 throw new Exception("!!! MISSING VALUES !!!");
 
-            var appendRequest = sheetService.Spreadsheets.Values.Append(valueRange, SpreadsheetID, range);
-            appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
+            var updateRequest = sheetService.Spreadsheets.Values.Update(valueRange, SpreadsheetID, range);
+            updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
 
-            var appendResponse = appendRequest.Execute();
+            var updateResponse = updateRequest.Execute();
         }
 
-        public void AvgRatePriority(List<IList<object>> values)
+        public static void AvgRatePriority(List<IList<object>> values)
         {
-            var listOfRows = new List<List<object>>()
-            { 
-                new List<object>(),
-                new List<object>(),
-                new List<object>(),
-                new List<object>(),
-                new List<object>()
+            var listOfRows = new List<AnswerStrucure>()
+            {
+                new AnswerStrucure(){ answer = 0, field = "Blocker" },
+                new AnswerStrucure(){ answer = 0, field = "Critical" },
+                new AnswerStrucure(){ answer = 0, field = "Major" },
+                new AnswerStrucure(){ answer = 0, field = "Minor" },
+                new AnswerStrucure(){ answer = 0, field = "Trivial" }
             };
-            int blocker_pr = 0;
-            int critical_pr = 0;
-            int major_pr = 0;
-            int minor_pr = 0;
-            int trivial_pr = 0;
             
             foreach(var row in values)
             {
                 switch (row[(int)column.Priority])
                 {
                     case "Blocker":
-                        blocker_pr += (int)row[(int)column.OriginalEstimate];
+                        listOfRows[0].answer += Convert.ToInt32(row[(int)column.OriginalEstimate]);
                         break;
                     case "Critical":
-                        critical_pr += (int)row[(int)column.OriginalEstimate];
+                        listOfRows[1].answer += Convert.ToInt32(row[(int)column.OriginalEstimate]);
                         break;
                     case "Major":
-                        major_pr += (int)row[(int)column.OriginalEstimate];
+                        listOfRows[2].answer += Convert.ToInt32(row[(int)column.OriginalEstimate]);
                         break;
                     case "Minor":
-                        minor_pr += (int)row[(int)column.OriginalEstimate];
+                        listOfRows[3].answer += Convert.ToInt32(row[(int)column.OriginalEstimate]);
                         break;
                     case "Trivial":
-                        trivial_pr += (int)row[(int)column.OriginalEstimate];
+                        listOfRows[4].answer += Convert.ToInt32(row[(int)column.OriginalEstimate]);
                         break;
                 }
             }
 
-            List<IList<object>> values_list = new List<IList<object>>();
+            List<List<object>> listToTable = new List<List<object>>();
+            foreach(var row in listOfRows)
+            {
+                //Console.WriteLine(row.field + " | " + row.answer);
+                listToTable.Add(new List<object>() { row.field, row.answer });
+            }
 
-            foreach
+            UpdateEntry(listToTable, reportSheet, "A2", "B7");
+        }
+
+        public static void StatsOnClosedTasks(List<IList<object>> values)
+        { 
+            
         }
 
         private static void Main(string[] args)
@@ -168,7 +185,7 @@ namespace SaberTest
             //                    row[(int)column.Resolved], row[(int)column.OriginalEstimate], row[(int)column.TimeSpent]);
             //}
 
-
+            AvgRatePriority(values);
 
             Console.ReadKey();
         }
