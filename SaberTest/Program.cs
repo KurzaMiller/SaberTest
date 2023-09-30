@@ -205,19 +205,32 @@ namespace SaberTest
 
             foreach (var row in values) 
             {
-                switch (row[(int)column.Priority])
+                if (row[(int)column.Status].ToString() == "Closed")
                 {
-                    case "Blocker":
-                        listOfRows[0].answer++;
-                        break;
-                    case "Critical":
-                        listOfRows[1].answer++;
-                        break;
-                    case "Major":
-                        listOfRows[2].answer++;
-                        break;
-                }
+                    switch (row[(int)column.Priority])
+                    {
+                        case "Blocker":
+                            listOfRows[0].answer++;
+                            break;
+                        case "Critical":
+                            listOfRows[1].answer++;
+                            break;
+                        case "Major":
+                            listOfRows[2].answer++;
+                            break;
+                        default: break;
+                    }
+                }                    
             }
+
+            List<List<object>> listToTable = new List<List<object>>();
+            foreach (var row in listOfRows)
+            {
+                //Console.WriteLine(row.answer);
+                listToTable.Add(new List<object>() { row.field, row.answer });
+            }
+
+            UpdateEntry(listToTable, reportSheet, "A9", "B11");
         }
 
         private static void Main(string[] args)
@@ -241,6 +254,7 @@ namespace SaberTest
             //}
 
             AvgRatePriority(values);
+            StatsOnClosedTasks(values);
 
             Console.ReadKey();
         }
