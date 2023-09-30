@@ -28,6 +28,8 @@ namespace SaberTest
         static readonly string posSourceLeftUp = "A2";
         static readonly string posSourceRightDown = "L242";
 
+        static readonly int secInDay = 86400;
+
         enum column
         { 
             Issuekey = 0,
@@ -47,7 +49,7 @@ namespace SaberTest
         public class AnswerStrucure
         { 
             public string field { get; set; }
-            public int answer { get; set; }
+            public float answer { get; set; }
         }
 
         //Объявление переменной сервиса Google Sheets
@@ -127,25 +129,37 @@ namespace SaberTest
                 new AnswerStrucure(){ answer = 0, field = "Minor" },
                 new AnswerStrucure(){ answer = 0, field = "Trivial" }
             };
-            
-            foreach(var row in values)
+
+            int bl_count = 0;
+            int cr_count = 0;
+            int maj_count = 0;
+            int min_count = 0;
+            int tr_count = 0;
+
+            foreach (var row in values)
             {
                 switch (row[(int)column.Priority])
                 {
                     case "Blocker":
                         listOfRows[0].answer += Convert.ToInt32(row[(int)column.OriginalEstimate]);
+                        bl_count++;
+                        //Console.WriteLine(bl_count);
                         break;
                     case "Critical":
                         listOfRows[1].answer += Convert.ToInt32(row[(int)column.OriginalEstimate]);
+                        cr_count++;
                         break;
                     case "Major":
                         listOfRows[2].answer += Convert.ToInt32(row[(int)column.OriginalEstimate]);
+                        maj_count++;
                         break;
                     case "Minor":
                         listOfRows[3].answer += Convert.ToInt32(row[(int)column.OriginalEstimate]);
+                        min_count++;
                         break;
                     case "Trivial":
                         listOfRows[4].answer += Convert.ToInt32(row[(int)column.OriginalEstimate]);
+                        tr_count++;
                         break;
                 }
             }
@@ -153,7 +167,27 @@ namespace SaberTest
             List<List<object>> listToTable = new List<List<object>>();
             foreach(var row in listOfRows)
             {
-                //Console.WriteLine(row.field + " | " + row.answer);
+                switch (row.field)
+                {
+                    case "Blocker":
+                        //Console.WriteLine(row.answer);
+                        //Console.WriteLine((row.answer/bl_count)/secInDay);
+                        row.answer = (row.answer / bl_count) / secInDay;
+                        break;
+                    case "Critical":
+                        row.answer = (row.answer /cr_count) / secInDay;
+                        break;
+                    case "Major":
+                        row.answer = (row.answer / maj_count) / secInDay;
+                        break;
+                    case "Minor":
+                        row.answer = (row.answer / min_count) / secInDay;
+                        break;
+                    case "Trivial":
+                        row.answer = (row.answer / tr_count) / secInDay;
+                        break;
+                }
+                //Console.WriteLine(row.answer);
                 listToTable.Add(new List<object>() { row.field, row.answer });
             }
 
@@ -161,8 +195,29 @@ namespace SaberTest
         }
 
         public static void StatsOnClosedTasks(List<IList<object>> values)
-        { 
-            
+        {
+            var listOfRows = new List<AnswerStrucure>()
+            {
+                new AnswerStrucure(){ answer = 0, field = "Blocker" },
+                new AnswerStrucure(){ answer = 0, field = "Critical" },
+                new AnswerStrucure(){ answer = 0, field = "Major" }
+            };
+
+            foreach (var row in values) 
+            {
+                switch (row[(int)column.Priority])
+                {
+                    case "Blocker":
+                        listOfRows[0].answer++;
+                        break;
+                    case "Critical":
+                        listOfRows[1].answer++;
+                        break;
+                    case "Major":
+                        listOfRows[2].answer++;
+                        break;
+                }
+            }
         }
 
         private static void Main(string[] args)
