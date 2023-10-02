@@ -119,6 +119,11 @@ namespace SaberTest
             var updateResponse = updateRequest.Execute();
         }
 
+        public static void PrepareToUpdate()
+        {
+
+        }
+
         public static void AvgRatePriority(List<IList<object>> values)
         {
             var listOfRows = new List<AnswerStrucure>()
@@ -296,9 +301,9 @@ namespace SaberTest
             //                    row[(int)column.Resolved], row[(int)column.OriginalEstimate], row[(int)column.TimeSpent]);
             //}
 
-            //AvgRatePriority(values);
-            //StatsOnClosedTasks(values);
-            //AvgTimeSpendOnBlocker(values);
+            AvgRatePriority(values);
+            StatsOnClosedTasks(values);
+            AvgTimeSpendOnBlocker(values);
             AvgLifeTimeOfTask(values);
 
             Console.ReadKey();
