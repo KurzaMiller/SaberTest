@@ -233,6 +233,49 @@ namespace SaberTest
             UpdateEntry(listToTable, reportSheet, "A9", "B11");
         }
 
+        public static void AvgTimeSpendOnBlocker(List<IList<object>> values)
+        {
+            var rowToSheet = new AnswerStrucure() { answer = 0, field = "Blocker" };
+            int counter = 0;
+
+            foreach (var row in values)
+            {
+                if (row[(int)column.Priority].ToString() == rowToSheet.field)
+                {
+                    rowToSheet.answer += Convert.ToInt32(row[(int)column.TimeSpent]);
+                    counter++;
+                }
+            }
+
+            List<List<object>> listToTable = new List<List<object>>();
+            listToTable.Add(new List<object>() { rowToSheet.field, (rowToSheet.answer/counter)/secInDay });
+            UpdateEntry(listToTable, reportSheet, "A15", "B15");
+        }
+
+        public static void AvgLifeTimeOfTask(List<IList<object>> values)
+        {
+            var rowToSheet = new AnswerStrucure() { answer = 0, field = "Time" };
+            int counter = 0;
+
+            DateTime Created;
+            DateTime Resolved;
+
+            foreach (var row in values)
+            {
+                //Created = Convert.ToDateTime(row[(int)column.Created]);
+                //Resolved = Convert.ToDateTime(row[(int)column.Resolved]);
+
+                //TimeS
+                rowToSheet.answer += Convert.ToInt64((Convert.ToDateTime(row[(int)column.Resolved]) - Convert.ToDateTime(row[(int)column.Created])).TotalSeconds);
+                Console.WriteLine(rowToSheet.answer);
+                counter++;
+            }
+
+            List<List<object>> listToTable = new List<List<object>>();
+            listToTable.Add(new List<object>() { rowToSheet.field, (rowToSheet.answer / counter)/secInDay });
+            UpdateEntry(listToTable, reportSheet, "A17", "B17");
+        }
+
         private static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
@@ -253,8 +296,10 @@ namespace SaberTest
             //                    row[(int)column.Resolved], row[(int)column.OriginalEstimate], row[(int)column.TimeSpent]);
             //}
 
-            AvgRatePriority(values);
-            StatsOnClosedTasks(values);
+            //AvgRatePriority(values);
+            //StatsOnClosedTasks(values);
+            //AvgTimeSpendOnBlocker(values);
+            AvgLifeTimeOfTask(values);
 
             Console.ReadKey();
         }
